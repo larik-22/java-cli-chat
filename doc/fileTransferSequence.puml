@@ -1,0 +1,35 @@
+@startuml
+actor Sender
+participant Server
+participant FileTransferServer
+actor Receiver
+
+Sender -> Server: Send file request
+Server -> Server: Validate request
+Server -> Server: Create pending session
+Server -> Server: Start timeout timer
+Server -> Receiver: Forward file request
+Receiver -> Server: Accept file request
+Server -> Sender: Notify with session ID and role
+Server -> Receiver: Notify with session ID and role
+
+par Connect to FileTransferServer
+    Sender -> FileTransferServer: Connect\n(Provide session ID and role)
+    Receiver -> FileTransferServer: Connect\n(Provide session ID and role)
+    FileTransferServer -> FileTransferServer: Wait for both clients to connect
+    FileTransferServer -> FileTransferServer: Validate session ID and set streams
+
+end
+
+par File Transfer
+    Sender -> FileTransferServer: Send bytes
+    FileTransferServer -> Receiver: Forward bytes
+    Receiver -> Receiver: Calculate checksum
+    Receiver -> Server: Send checksum for validation
+    Server -> FileTransferServer: Validate checksum
+    Server -> Sender: Notify with file transfer result
+    Server -> Receiver: Notify with file transfer result
+
+end
+
+@enduml
